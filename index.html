@@ -1,0 +1,499 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+    <script src="js/jquery-1.6.4.min.js"></script>
+    <style>
+html, body {
+	background-color: #131313;
+	margin: 0px;
+	padding: 0px;
+	width: 100%;
+	height: 100%;
+	margin: 0px;
+	overflow: hidden;
+}
+#container {
+	background: url('pixel.png') transparent repeat fixed;
+	z-index: 5;
+	width: 100%;
+	height: 4000px;
+	position: fixed;
+	top: 0;
+	left: 0;
+}
+.link{
+	text-align: center;
+ position: absolute;
+ top:10px;
+ left:0;
+font-size: 10px;
+font-family: arial;
+}
+
+#web{
+width: 50px;
+height: 20px;
+color:#421911;
+opacity: 0;
+}
+
+.link#web :hover{
+color:#d36d6d;
+
+
+}
+#publicidadInteractiva{
+	/*border:1px solid #fff; */
+	word-wrap: break-word;
+opacity: 0;
+color: #435710;
+
+width: 85px;
+height: auto;
+}
+#publicidadAnimada{
+	/*border:1px solid #fff; */
+	word-wrap: break-word;
+opacity: 0;
+color: #2c0e38;
+width: 85px;
+height: auto;
+}
+#solucionesInteractivas{
+	/*border:1px solid #fff; */
+	word-wrap: break-word;
+opacity: 0;
+color: #0e3038;
+width: 87px;
+height: auto;
+}
+
+#canvas{
+
+	display: none;
+}
+
+#helpUs{
+	position: absolute;
+	top:200px;
+	left:100px;
+
+	width: 40px;
+	height: 50px;
+	/*background-color: rgba(0,0,0,0.45);*/
+	display: none;
+  border-radius: 10px;
+}
+#helpUs h1{
+	margin:0 auto;
+	margin-top: 9px;
+	width: auto;
+	height: 20px;
+	text-align: center;
+color: #fff;
+	font-family: arial;
+	font-size: 30px;
+	text-shadow: 0px 0px 16px #fff;
+
+}
+#container h1{
+	font-size: 15px;
+	position: absolute;
+	top:1%;
+	left: 37%;
+	font-family: Helvetica;
+	color: #fff;
+	font-weight: 300;
+}
+#container h2{
+	font-size: 12px;
+	position: absolute;
+	top:1.5%;
+	left: 42%;
+	font-family: Helvetica;
+	color: #C4C4C4;
+}
+</style>
+    </head>
+    <body onresize="scaleCanvas();">
+    <div class="link" id="web"><strong></strong></div>
+<div class="link" id="publicidadInteractiva"><strong></strong> </div>
+<div class="link" id="publicidadAnimada"><strong></strong> </div>
+<div class="link" id="solucionesInteractivas"><strong></strong> </div>
+<div id="helpUs"><h1> !</h1></div>
+<div id="container"> 
+<h1>Html5 experiment. Javascript + Jquery By Disandu Perera</h1>
+<h2>Proximity Check - Draggable - Collision</h2>
+</div>
+
+
+<canvas id="canvas"></canvas>
+
+<script src="http://d3lp1msu2r81bx.cloudfront.net/kjs/js/lib/kinetic-v4.5.1.min.js"></script> 
+<script src="http://code.jquery.com/jquery-1.10.0.min.js"></script>
+<script>
+$(document).ready(function() {
+
+
+var canvas = document.getElementById('canvas');
+$(canvas).fadeIn('slow');
+var context;
+var containerDiv;
+var balls = new Array();
+var dx=5;
+var dy=5;
+var clearRectWidth;
+var clearRectHeight;
+var mouseMoving=false;
+var secondVar=0;
+var mouseDown=false;
+var webLink = document.getElementById('web');
+var publicidadInteractivaLink = document.getElementById('publicidadInteractiva');
+var publicidadAnimadaLink = document.getElementById('publicidadAnimada');
+var solucionesInteractivasLink = document.getElementById('solucionesInteractivas');
+var ayudanos = document.getElementById('helpUs');
+var mostrarAyudanos = false;
+containerDiv = document.getElementById('container');
+context = canvas.getContext('2d');
+function init() {
+	
+    var winWidth = window.innerWidth;
+    var winHeight = window.innerHeight;
+    console.log(winWidth)
+	balls[0]= new Ball(100,300,"¡Hola!",50,'rgba(245, 95, 86,1)',false);
+	balls[1]= new Ball(500,300,"Hi!",80,'rgba(66, 219, 252,1)',false);  
+	balls[2]= new Ball(800,300,"Olá!",60,'rgba(212, 133, 245,1)',false);  
+	balls[3]= new Ball(1100,300,"Salut!",80,'rgba(202, 235, 118,1)',false);  
+    balls[4]= new Ball(300,300,"Hallo!",100,'rgba(255, 216, 0,1)',false);      
+    balls[5]= new Ball(900,500,"Hallo!",110,'rgba(43, 0, 255,1)',false);    
+    balls[6]= new Ball(1000,800,"Hallo!",80,'rgba(214, 21, 178,1)',false);    
+}//init
+   
+		$(webLink).animate({opacity : 1},2000);
+		$(publicidadInteractivaLink).animate({opacity : 1},3500);
+		$(publicidadAnimadaLink).animate({opacity : 1},4500);
+		$(solucionesInteractivasLink).animate({opacity : 1},4500);
+
+setInterval(draw,8);
+setInterval(second,1000);
+
+setInterval(update,1500); // actualiza velocidades y angulos cada dos segs
+
+function draw(){
+	context.clearRect(0,0, clearRectWidth,clearRectHeight);
+
+	for(var i = 0; i < balls.length; i++) {
+	balls[i].pintar();
+	balls[i].waves();
+	balls[i].move();
+	balls[i].wavesDos();
+	balls[i].sineExpansion();
+		for(var n= 0; n < balls.length; n++) {
+			if(i!=n){
+			drawMainLine(balls[i],balls[n]);
+		}
+		if(i!=n &&  Math.abs(balls[i].x - balls[n].x) < balls[i].radius+balls[n].radius &&  Math.abs(balls[i].y - balls[n].y) < balls[i].radius+balls[n].radius ){
+        balls[i].changeDir();
+        balls[i].intercep(balls[n]);
+		}
+		
+		}
+	}
+	
+}//draw
+        
+
+
+this.addEventListener("mousemove", function(){
+	if(balls[0].inShape(event) || balls[1].inShape(event) || balls[2].inShape(event)  || balls[3].inShape(event) ){ // evalua para cambiar el cursor sobre
+
+		document.body.style.cursor = "pointer";
+		}else{
+		document.body.style.cursor = "auto";
+	}	//cierra if
+
+	for(var i = 0; i < balls.length; i++) {
+		if(balls[i].inShape(event)){
+			balls[i].dragging(event);
+			balls[i].stop=true;
+    	}else{
+			balls[i].stop=false;
+
+
+    	}
+	}//cierra for
+},  false ); // termianListener
+
+
+this.addEventListener("mousedown", function(){
+ 	mouseDown=true;
+	for(var i = 0; i < balls.length; i++) {
+			if(balls[i].inShape(event) && mousemove()){
+				balls[i].x = event.clientX;
+				balls[i].y = event.clientY;
+			}
+
+	}
+	//window.alert("ee");
+}, false );  // terminaListener
+
+
+this.addEventListener("mouseup", function(){
+ 	mouseDown=false;
+}, false );  // terminaListener
+
+function second(){
+	secondVar++;
+	if(secondVar%3== 0) $(ayudanos).fadeOut("fast");
+}// cierra second
+
+function update(){
+	balls[random()].changeVel();	
+}//cierra update
+	
+	
+
+function random(){
+	var index;
+	index = Math.floor(Math.random()*balls.length);
+	return index;
+}
+
+function drawMainLine(ballOne, ballTwo){
+	var  bigStrokeOp = 0.05;  //aumentando el valor aumenta el brillo a menos distancia
+	var smallStrokeOp = 0.29;  //aumentando el valor aumenta el brillo a menos distancia
+	var distX = Math.abs(ballOne.x - ballTwo.x) ;
+	var distY=Math.abs(ballOne.y - ballTwo.y);
+	var distLimit = 400;
+	var hipotenusa =  Math.sqrt(Math.pow(distX,2) + Math.pow(distY,2));
+    smallStrokeOp -= hipotenusa/1000;
+    bigStrokeOp -=  hipotenusa/10000;
+if(hipotenusa< distLimit && hipotenusa < distLimit ){
+	//strokeGrande
+
+ 	 context.beginPath();
+     context.globalAlpha =bigStrokeOp;   //limite 0.03
+	 context.lineWidth = 13;
+	 context.strokeStyle="white";
+	
+      context.moveTo(ballOne.x,ballOne.y);
+      context.lineTo(ballTwo.x,ballTwo.y);
+      context.stroke();
+      //strokePeque
+
+      context.beginPath();
+      context.lineWidth = 2;
+      context.strokeStyle="white";
+      context.globalAlpha =smallStrokeOp;    //limite 0.1 
+      context.moveTo(ballOne.x,ballOne.y);
+      context.lineTo(ballTwo.x,ballTwo.y);
+      context.stroke();
+
+}
+
+}
+
+function Ball(x,y,id,radius,colorr,makeSine){
+	// circulo int
+	this.start = (Math.random()*100);
+	this.x = x;
+	this.y = y;
+	this.id = id;
+	this.colorr = colorr;
+	this.radius = radius;
+	this.makeSine = makeSine;
+	this.vx = (Math.random()*1)-0.5;
+	this.vy = (Math.random()*1)-0.5;
+	this.angle = 0;
+	this.stop = false;
+	this.angleRadius = (Math.random());
+	this.angleOpacity =  (Math.random()*100);
+	this.angleOpacityDos =  (Math.random()*100);;
+    this.expansiveRadius= 0;
+     this.expansiveRadiusDos= 10;
+	this.pintar = function(){
+		//circulo int
+		context.beginPath(); 
+		context.fillStyle= this.colorr;
+		context.globalAlpha=0.87;  
+		context.arc(this.x,this.y,this.radius,0,Math.PI*2,true);
+		context.closePath();
+		context.fill();
+		// circulo ext
+		var radiusDos = this.radius + 7;
+		context.beginPath();
+		context.fillStyle= this.colorr;
+		context.globalAlpha=0.16;  
+		context.arc(this.x,this.y,radiusDos,0,Math.PI*2,true);
+		context.closePath();
+		context.fill();
+		
+	}// cierra pintar
+    this.intercep = function(ballT){
+    	if(Math.abs(this.x - ballT.x) < (this.radius+ballT.radius)-2 &&  Math.abs(this.y - ballT.y) < (this.radius+ballT.radius)-2 ){
+        ayudanos.style.top = this.y + "px";
+        ayudanos.style.left = this.x+this.radius + "px";
+        $(ayudanos).fadeIn(200);
+    }else{
+    	   ayudanos.style.top = this.y + "px";
+        ayudanos.style.left = this.x+this.radius + "px";
+    	$(ayudanos).fadeOut(200);
+}
+
+    
+    }
+    this.waves =  function(){
+		//ONDA
+		var op = 0.08;
+		var opExpansiva = 0.08;
+		var lineWidthh = 30;
+		var strokeColor ;
+
+		
+this.angleOpacity += 0.05;  // aumenta velocidad  */
+		this.expansiveRadius+=0.5;
+		lineWidthh+=10;
+		
+opExpansiva +=Math.cos( this.angleOpacity )/20 -0.03 ;
+strokeColor=this.colorr;
+		context.beginPath(); 
+		context.strokeStyle=strokeColor;
+		context.globalAlpha =opExpansiva;   
+		context.arc(this.x,this.y,this.expansiveRadius,0,Math.PI*2,true);
+		 context.lineWidth = lineWidthh;
+		 	
+		context.stroke();
+		context.closePath();
+				
+				if(this.expansiveRadius>this.radius+40){
+					this.expansiveRadius=0;
+					opExpansiva=1;
+					this.angleOpacity =0;
+
+				}
+
+    }//waves
+
+     this.wavesDos =  function(){
+		//ONDA
+		var op = 0.08;
+		var opExpansivaDos = 0.08;
+		var lineWidthh = 30;
+		var strokeColorDos ;
+       
+		//ONDAExpansiva
+this.angleOpacityDos += 0.05;  // aumenta velocidad  */
+		this.expansiveRadiusDos+=0.1;
+		lineWidthh+=10;
+		
+opExpansivaDos +=Math.cos( this.angleOpacityDos )/20 -0.03 ;
+strokeColorDos=this.colorr;
+		context.beginPath(); 
+		context.strokeStyle=strokeColorDos;
+		context.globalAlpha =opExpansivaDos;   
+		context.arc(this.x,this.y,this.expansiveRadiusDos,0,Math.PI*2,true);
+		 context.lineWidth = lineWidthh;
+		 	
+		context.stroke();
+		context.closePath();
+				
+				if(this.expansiveRadiusDos>this.radius+40){
+					this.expansiveRadiusDos=0;
+					opExpansivaDos=1;
+					this.angleOpacityDos =0;
+
+				}
+
+    }//waves
+	this.changeVel = function(){
+		this.vx = (Math.random()*1)-0.5;
+		this.vy = (Math.random()*1)-0.5;
+		this.x += this.vx + (Math.cos(this.angle ));
+		this.y += this.vy + (Math.sin(this.angle ));
+		this.angleRadius *= vx;
+	}
+
+	this.changeDir = function(){
+       this.vx = (Math.random()*1)-0.5;
+		this.vy = (Math.random()*1)-0.5;
+
+	}
+
+	this.inShape = function(event){
+		if (Math.abs(event.clientX -this.x) <= this.radius &&  Math.abs(event.clientY -this.y) <= this.radius){  // area sensible
+
+		return true;
+		}else if(Math.abs(event.clientX -this.x) > this.radius &&  Math.abs(event.clientY -this.y) > this.radius){ 
+		return false;
+	 	}
+	}// cierra inShape
+
+	this.dragging =  function(event){
+		if(mouseDown){
+			this.x = event.clientX;
+			this.y = event.clientY;
+		}
+
+	}//cierra dragging
+
+	this.move = function(){   
+		if(this.stop==false){
+		this.x += this.vx ;
+		this.y += this.vy ;
+	    }
+		/*this.x += this.vx + (Math.cos(this.angle ));
+		this.y += this.vy + (Math.sin(this.angle ));*/  // mov angular!!
+		this.angle += 0.06;
+		if(this.x + this.radius>window.innerWidth){
+			this.vx *= -1;
+		}
+		if(this.x - this.radius<0){
+			this.vx *= -1;	
+		}	
+		if(this.y + this.radius>window.innerHeight){
+			this.vy *= -1;
+		}
+		if(this.y-this.radius<0){
+			this.vy *= -1;
+		}		 
+		if(this.y < 0 || this.x < 0){
+        	this.x = this.x + this.radius;
+        	this.y = this.y + this.radius;
+		}
+		if( this.y > window.innerHeight  || this.x > window.innerWidth ){
+        	this.x = this.x - this.radius;
+        	this.y = this.y - this.radius;
+		}
+	}// cierra move
+
+	this.sineExpansion = function(){
+		this.radius +=  Math.cos( this.start )/4 ;  // disminuir el dividendo para lograr que crezca mas la expansion
+		this.start += 0.06;  // aumenta velocidad
+	}// cierra palpitacion
+
+} // cierra clase Bola
+
+
+
+  
+function scaleCanvas() {
+	// adjust canvas size to browsers window
+	context.canvas.width  = window.innerWidth;
+	context.canvas.height = window.innerHeight;
+	clearRectWidth = window.innerWidth;
+	clearRectHeight= window.innerHeight;
+	containerDiv.style.width  = window.innerWidth;
+	containerDiv.style.height = window.innerHeight;
+} // close scale canvas
+
+ 
+
+scaleCanvas();
+init();
+
+
+});
+
+</script>
+</body>
+</html>
